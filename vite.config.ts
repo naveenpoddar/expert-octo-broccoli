@@ -3,9 +3,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  // Use relative asset URLs so the same build works on Vercel, local previews,
-  // and GitHub Pages project sites without hard-coding a deployment path.
-  base: './',
+  base: '/expert-octo-broccoli/',
   plugins: [react(), tailwindcss()],
   build: {
     outDir: 'docs',
