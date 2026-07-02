@@ -96,7 +96,7 @@ export function FileExplorer({ windowId }: { windowId: string }) {
     for (let i = 1; i < path.length; i++) {
       const segment = path[i];
       if (currentNode.type === 'dir') {
-        const nextNode = (currentNode.children as FSNode[]).find(
+        const nextNode: FSNode | undefined = (currentNode.children as FSNode[]).find(
           (child) => child.name === segment
         );
         if (nextNode) {
