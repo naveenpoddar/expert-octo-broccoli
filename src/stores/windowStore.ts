@@ -19,17 +19,32 @@ export interface OpenWindow extends WindowBounds {
   isMinimized: boolean;
   isMaximized: boolean;
   restoreBounds?: WindowBounds;
+  data?: any;
 }
 
 interface OpenAppOptions {
   id?: WindowId;
   title?: string;
   bounds?: Partial<WindowBounds>;
+  data?: any;
+}
+
+export type SessionState = 'booting' | 'login' | 'desktop' | 'shutdown';
+
+export interface SnapPreviewBounds {
+  x: number | string;
+  y: number | string;
+  width: number | string;
+  height: number | string;
 }
 
 interface WindowStoreState {
   openWindows: OpenWindow[];
   nextZIndex: number;
+  sessionState: SessionState;
+  isStartMenuOpen: boolean;
+  username: string;
+  snapPreview: SnapPreviewBounds | null;
   openApp: (appName: AppName, options?: OpenAppOptions) => WindowId;
   closeApp: (id: WindowId) => void;
   focusWindow: (id: WindowId) => void;
@@ -37,6 +52,13 @@ interface WindowStoreState {
   maximizeWindow: (id: WindowId, viewport?: Pick<WindowBounds, 'width' | 'height'>) => void;
   restoreWindow: (id: WindowId) => void;
   updateWindowDimensions: (id: WindowId, bounds: Partial<WindowBounds>) => void;
+  updateWindowData: (id: WindowId, data: any) => void;
+  setSessionState: (state: SessionState) => void;
+  setStartMenuOpen: (open: boolean) => void;
+  setStartMenuToggle: () => void;
+  setUsername: (username: string) => void;
+  logout: () => void;
+  setSnapPreview: (preview: SnapPreviewBounds | null) => void;
 }
 
 const DEFAULT_WINDOW_BOUNDS: WindowBounds = {
@@ -78,6 +100,7 @@ export const useWindowStore = create<WindowStoreState>((set, get) => ({
       : undefined;
 
     if (existingWindow) {
+      set({ isStartMenuOpen: false });
       get().focusWindow(existingWindow.id);
       return existingWindow.id;
     }
@@ -93,6 +116,7 @@ export const useWindowStore = create<WindowStoreState>((set, get) => ({
     };
 
     set((state) => ({
+      isStartMenuOpen: false,
       openWindows: [
         ...state.openWindows,
         {
@@ -102,6 +126,7 @@ export const useWindowStore = create<WindowStoreState>((set, get) => ({
           zIndex,
           isMinimized: false,
           isMaximized: false,
+          data: options?.data,
           ...bounds,
         },
       ],
@@ -189,4 +214,24 @@ export const useWindowStore = create<WindowStoreState>((set, get) => ({
       ),
     }));
   },
+
+  updateWindowData: (id, data) => {
+    set((state) => ({
+      openWindows: state.openWindows.map((window) =>
+        window.id === id ? { ...window, data } : window
+      ),
+    }));
+  },
+
+  sessionState: 'booting',
+  isStartMenuOpen: false,
+  username: 'Codex User',
+  snapPreview: null,
+
+  setSessionState: (sessionState) => set({ sessionState }),
+  setStartMenuOpen: (isStartMenuOpen) => set({ isStartMenuOpen }),
+  setStartMenuToggle: () => set((state) => ({ isStartMenuOpen: !state.isStartMenuOpen })),
+  setUsername: (username) => set({ username }),
+  logout: () => set({ sessionState: 'login', isStartMenuOpen: false, openWindows: [] }),
+  setSnapPreview: (snapPreview) => set({ snapPreview }),
 }));
